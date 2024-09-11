@@ -24,6 +24,11 @@ app.use(cookieParser());
 
 app.use(cors());
 
+app.use(cors({
+    origin: 'http://localhost:5175', // Frontend origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  }));
+
 mongoose.connect(process.env.MONGO_URL, {
     // useNewUrlParser: true,
     // useUnifiedTopology: true,
