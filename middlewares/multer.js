@@ -7,7 +7,7 @@ const fs = require('fs');
 // Multer configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './upload/user/');
+    cb(null, './upload/');
   },
   filename: function (req, file, cb) {
     cb(null, new Date().toISOString().replace(/:/g, '-') + path.extname(file.originalname));
@@ -69,7 +69,7 @@ const flexibleUpload = (fields) => {
                   const originalSize = fs.statSync(file.path).size;
                   totalOriginalSize += originalSize;
 
-                  const outputFilePath = path.join('./upload/user/', 'resized-' + file.filename);
+                  const outputFilePath = path.join('./upload/', 'resized-' + file.filename);
                   
                   // Resize the image
                   await sharp(file.path)

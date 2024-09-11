@@ -214,3 +214,43 @@ exports.Profile = catchAsyncError(async(req, res, next)=>{
         res.status(error)
     }
 })
+
+
+//edit profile
+exports.editProfile = catchAsyncError(async (req, res, next) => {
+    try {
+        let newUserData = {
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            profession: req.body.profession,
+            about_me: req.body.about_me
+        };
+
+        if (req.files && req.files.profile) {
+            const profile = `${process.env.BACKEND_URL}/upload/user/${req.files.profile[0].filename}`;
+            newUserData = { ...newUserData, profile };
+        }
+
+        if (req.files && req.files.bg_image) {
+            const bg_image = `${process.env.BACKEND_URL}/upload/user/${req.files.bg_image[0].filename}`;
+            newUserData = { ...newUserData, bg_image };
+        }
+
+        const user = await User.findByIdAndUpdate(req.user._id, newUserData, {
+            new: true,
+            runValidators: true
+        });
+
+        if (!user) {
+            return next(new ErrorHandler('User not found', 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        next(error);
+    }
+});
