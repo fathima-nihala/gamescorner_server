@@ -19,7 +19,28 @@ const userSchema = new mongoose.Schema({
     },
     passwordChangedAt:Date,
     resetPasswordOTP:String,
-    resetPasswordOTPExpires:Date
+    resetPasswordOTPExpires:Date,
+    name: {
+        type: String,
+        required: [true, 'Please enter your name'],
+        trim: true,
+        maxlength: [30, 'Name cannot exceed 30 characters']
+    },
+    phone:{
+        type:String
+    },
+    profile:{
+        type:String
+    },
+    bg_image:{
+        type:String
+    },
+    profession:{
+        type:String,
+    },
+    about_me:{
+        type:String
+    },
 })
 
 userSchema.pre('save', async function(next){

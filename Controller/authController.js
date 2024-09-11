@@ -7,16 +7,29 @@ const crypto = require('crypto')
 
 
 exports.register = catchAsyncError(async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, profession, about_me, name, phone } = req.body;
 
-    if (!email || !password) {
-        return next(new ErrorHandler('Please enter both email and password', 400));
+    let profile, bg_image;
+    if (req.file) {
+        const filename = req.file.filename;
+        profile = `${process.env.BACKEND_URL}/upload/${filename}`;
+        bg_image = `${process.env.BACKEND_URL}/upload/${filename}`;
+    }
+
+    if (!email || !password || !name) {
+        return next(new ErrorHandler('Please enter name, email and password', 400));
     }
 
     try {
         const user = await User.create({
+            name,
             email,
-            password
+            password,
+            phone,
+            profile,
+            bg_image,
+            profession,
+            about_me
         });
 
         res.status(200).json({
@@ -188,3 +201,16 @@ exports.resetPassword = catchAsyncError(async (req, res, next) => {
         message: 'Password Changed Successfully'
     });
 });
+
+//profile
+exports.Profile = catchAsyncError(async(req, res, next)=>{
+    try {
+        const admin = await User.findById(req.user._id);
+        if (!admin) {
+            return next(new ErrorHandler('User not found', 404));
+        }
+        res.status(200).json({ statusCode: 200, success: true, message: "admin Details", admin });
+    } catch (error) {
+        res.status(error)
+    }
+})
