@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use(cors());
 
 app.use(cors({
-    origin: 'http://localhost:5175', // Frontend origin
+    origin: 'http://localhost:5173', // Frontend origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   }));
 
