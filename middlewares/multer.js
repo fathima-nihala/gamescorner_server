@@ -10,7 +10,8 @@ const storage = multer.diskStorage({
     cb(null, './upload/');
   },
   filename: function (req, file, cb) {
-    cb(null, new Date().toISOString().replace(/:/g, '-') + path.extname(file.originalname));
+    // cb(null, new Date().toISOString().replace(/:/g, '-') + path.extname(file.originalname));
+    cb(null,  file.originalname.split(".")[0].replaceAll(" ","_").slice(0,10) +Date.now() + path.extname(file.originalname));
   }
 });
 
@@ -160,5 +161,26 @@ const handleMulterErrors = (err, req, res, next) => {
   }
   next();
 };
+
+
+//code for product multere
+
+const productStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './upload/products/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname.split(".")[0].replaceAll(" ","_").slice(0,10) + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const productUpload = multer({
+  storage: productStorage,
+  limits: {
+    fileSize: 1024 * 1024 * 20 // 20MB file size limit
+  },
+  fileFilter: fileFilter
+});
+
 
 module.exports = { upload, flexibleUpload, handleMulterErrors };

@@ -5,6 +5,11 @@ const sendToken = require("../utils/sendToken");
 const sendEmail = require("../utils/email");
 const crypto = require('crypto')
 
+const fs = require('fs').promises;
+const path = require('path');
+
+
+
 
 exports.register = catchAsyncError(async (req, res, next) => {
     const { email, password, profession, about_me, name, phone } = req.body;
@@ -12,8 +17,8 @@ exports.register = catchAsyncError(async (req, res, next) => {
     let profile, bg_image;
     if (req.file) {
         const filename = req.file.filename;
-        profile = `${process.env.BACKEND_URL}/upload/${filename}`;
-        bg_image = `${process.env.BACKEND_URL}/upload/${filename}`;
+        profile = `${process.env.BACKEND_URL}/upload/user/${filename}`;
+        bg_image = `${process.env.BACKEND_URL}/upload/user/${filename}`;
     }
 
     if (!email || !password || !name) {
@@ -217,8 +222,52 @@ exports.Profile = catchAsyncError(async(req, res, next)=>{
 
 
 //edit profile
+// exports.editProfile = catchAsyncError(async (req, res, next) => {
+//     try {
+//         let newUserData = {
+//             name: req.body.name,
+//             email: req.body.email,
+//             phone: req.body.phone,
+//             profession: req.body.profession,
+//             about_me: req.body.about_me
+//         };
+
+//         if (req.files && req.files.profile) {
+//             const profile = `${process.env.BACKEND_URL}/upload/user/${req.files.profile[0].filename}`;
+//             newUserData = { ...newUserData, profile };
+//         }
+
+//         if (req.files && req.files.bg_image) {
+//             const bg_image = `${process.env.BACKEND_URL}/upload/user/${req.files.bg_image[0].filename}`;
+//             newUserData = { ...newUserData, bg_image };
+//         }
+
+//         const user = await User.findByIdAndUpdate(req.user._id, newUserData, {
+//             new: true,
+//             runValidators: true
+//         });
+
+//         if (!user) {
+//             return next(new ErrorHandler('User not found', 404));
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             user
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// });
+
+
 exports.editProfile = catchAsyncError(async (req, res, next) => {
     try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return next(new ErrorHandler('User not found', 404));
+        }
+
         let newUserData = {
             name: req.body.name,
             email: req.body.email,
@@ -227,28 +276,44 @@ exports.editProfile = catchAsyncError(async (req, res, next) => {
             about_me: req.body.about_me
         };
 
+        // Function to delete old file
+        const deleteOldFile = async (oldFilePath) => {
+            if (oldFilePath) {
+                const fullPath = path.join(__dirname, '..', 'public', oldFilePath.split('/upload/')[1]);
+                try {
+                    await fs.unlink(fullPath);
+                } catch (error) {
+                    console.error('Error deleting old file:', error);
+                }
+            }
+        };
+
+        // Handle profile picture update
         if (req.files && req.files.profile) {
             const profile = `${process.env.BACKEND_URL}/upload/user/${req.files.profile[0].filename}`;
-            newUserData = { ...newUserData, profile };
+            if (user.profile) {
+                await deleteOldFile(user.profile);
+            }
+            newUserData.profile = profile;
         }
 
+        // Handle background image update
         if (req.files && req.files.bg_image) {
             const bg_image = `${process.env.BACKEND_URL}/upload/user/${req.files.bg_image[0].filename}`;
-            newUserData = { ...newUserData, bg_image };
+            if (user.bg_image) {
+                await deleteOldFile(user.bg_image);
+            }
+            newUserData.bg_image = bg_image;
         }
 
-        const user = await User.findByIdAndUpdate(req.user._id, newUserData, {
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, newUserData, {
             new: true,
             runValidators: true
         });
 
-        if (!user) {
-            return next(new ErrorHandler('User not found', 404));
-        }
-
         res.status(200).json({
             success: true,
-            user
+            user: updatedUser
         });
     } catch (error) {
         next(error);
